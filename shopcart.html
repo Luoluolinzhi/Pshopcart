@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+  <title>Document</title>
+  <style>
+    .select {
+      margin: 0 10px;
+    }
+    .goods-item {
+      margin-left: 20px;
+    }
+    span {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="list"></div>
+  <p class="price-info">
+    <label for="all">全选</label>
+    <input type="checkbox" id="all">
+    总价<span class="all-price">0</span>元
+    <span class="select">请选择</span>
+  </p>
+  <script>
+    var res = [
+      {
+        "shop_name": "A商店",
+        "shop_id": "2",
+        "list": [
+          {
+            "goods_id": '23',
+            "name": '书包',
+            'price': '20',
+          },
+          {
+            "goods_id": '26',
+            "name": '铅笔',
+            'price': '5',
+          },
+          {
+            "goods_id": '28',
+            "name": '文具盒',
+            'price': '70',
+          }
+        ]
+      },
+      {
+        "shop_name": "B商店",
+        "shop_id": "5",
+        "list": [
+          {
+            "goods_id": '273',
+            "name": '香蕉',
+            'price': '8',
+          },
+          {
+            "goods_id": '926',
+            "name": '苹果',
+            'price': '5',
+          },
+          {
+            "goods_id": '8',
+            "name": '大鸭梨',
+            'price': '7',
+          },
+          {
+            "goods_id": '9',
+            "name": '西红柿',
+            'price': '77',
+          }
+        ]
+      }
+    ]
+
+    var str = "";
+    for(var i=0;i<res.length;i++){
+      var goods_list = "";
+      for(var j=0;j<res[i].list.length;j++){
+        goods_list+='<p><input class="goods-item" type="checkbox"><span>'+res[i].list[j].name+'</span><span class="price">'+res[i].list[j].price+'</span></p>'
+      }
+      str+='<div class="shop-item"><p><input data-add="0" data-num="'+res[i].list.length+'" type="checkbox">'+res[i].shop_name+'</p><div class="goods-list">'+goods_list+'</div></div>'
+    }
+    $(".list").html(str)
+
+    //全选
+    function allSelected() {
+      $("label").text("取消")
+      $("input[type='checkbox']").prop("checked","checked")
+      var goods_price_list = $(".price");
+      var all_price = 0;
+      for(var i=0;i<goods_price_list.length;i++){
+        var item_price = Number ($(goods_price_list[i]).text());
+        all_price = all_price+item_price
+      }
+      $(".all-price").text(all_price);
+      $(".select").text("结算")      
+    }
+    function allCancel() {
+      $("label").text("全选")
+      $("input[type='checkbox']").prop("checked","")
+      $(".all-price").text(0);
+      $(".select").text("请选择")
+    }
+    $("#all").click(function(){
+      if($("label").text() == "全选"){
+        allSelected()
+      }else {
+        allCancel()
+      }
+    })
+
+    //点击商店
+    var num = 0;
+    $(".shop-item>p>input[type='checkbox']").click(function(){
+      if($(this).prop("checked")){
+        if(num > res.length){
+          num = res.length;
+        }else {
+          num = num+1
+        }
+        $(this).parents("p").siblings(".goods-list").children().children(".goods-item").prop("checked","checked");
+        var selected_list = $(this).parents("p").siblings(".goods-list").children().children(".goods-item").siblings(".price");
+        var all_goods_price = 0;
+        for(var i=0;i<selected_list.length;i++){
+          var price_item = Number ($(selected_list[i]).text());
+          all_goods_price = all_goods_price+price_item;
+        }
+        $(".all-price").text(all_goods_price);
+        $(".select").text("结算")
+        if(num == res.length){
+          allSelected()
+        }
+      }else {
+        $(this).parents("p").siblings(".goods-list").children().children(".goods-item").prop("checked","");
+        var no_selected_list =  $(this).parents("p").siblings(".goods-list").children().children(".goods-item").siblings(".price");
+        var no_goods_price = 0;
+        for(var i=0;i<no_selected_list.length;i++){
+          var price_item = Number ($(no_selected_list[i]).text());
+          no_goods_price = no_goods_price+price_item;
+        }
+        if(num < 0){
+          num = 0;
+        }else {
+          num = num-1
+        }
+        if(num != res.length){
+          $("label").text("全选")
+          $("#all").prop("checked",false)
+          $(".select").text("请选择")
+          if(num == 0){
+            $(".all-price").text(0);
+          }else{
+            $(".all-price").text(Number($(".all-price").text())-no_goods_price);
+          }
+        }
+      }
+    })
+    //点击单个商品
+    $(".goods-item").click(function(){
+      var this_siblings_num = $(this).parents("p").siblings("p").length;
+      var shop_item_goods_num = this_siblings_num+1;
+      var item_price = Number($(this).siblings(".price").text());
+      var add = $(this).parents(".goods-list").siblings().children("input").data("add");
+      if($(this).prop("checked")){
+        $(this).parents(".goods-list").siblings().children("input").data("add",++add)
+        $(".all-price").text(Number($(".all-price").text())+item_price);
+        if(add == $(this).parents(".goods-list").siblings().children("input").data("num")){
+          $(this).parents(".goods-list").siblings("p").children("input").prop("checked","checked");
+        }
+        console.log(add)
+      }else {
+        $(this).parents(".goods-list").siblings().children("input").data("add",--add)
+        $(".all-price").text(Number($(".all-price").text())-item_price);
+        if(add != $(this).parents(".goods-list").siblings().children("input").data("num")){
+          $(this).parents(".goods-list").siblings("p").children("input").prop("checked","");
+        }
+        console.log(add)
+      }
+    })
+  </script>
+</body>
+</html>
